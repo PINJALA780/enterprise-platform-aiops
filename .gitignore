@@ -1,0 +1,36 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+
+# Node.js
+node_modules/
+dist/
+build/
+
+# Logs
+*.log
+
+# IDE and OS
+.DS_Store
+.idea/
+.vscode/
+
+# Generated security scan reports
+applications/reference-service/trivy*.json
