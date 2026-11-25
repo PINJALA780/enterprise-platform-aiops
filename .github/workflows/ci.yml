@@ -1,15 +1,13 @@
 
-name: Reference Service CI
+name: Enterprise Platform CI
 
 on:
   push:
     branches:
-      - master
       - main
 
   pull_request:
     branches:
-      - master
       - main
 
   workflow_dispatch:
@@ -18,7 +16,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: reference-service-ci-${{ github.ref }}
+  group: enterprise-platform-ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -52,3 +50,22 @@ jobs:
 
       - name: Run automated tests
         run: python -m pytest -v
+
+  secret-scan:
+    name: Gitleaks Secret Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout complete repository history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan repository for secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
