@@ -1,29 +1,40 @@
 
-FROM python:3.11-alpine
+FROM python:3.11-slim AS builder
 
-RUN apk update \
-    && apk upgrade --no-cache \
-    && rm -rf /var/cache/apk/*
-
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
+ENV PIP_DEFAULT_TIMEOUT=120 \
+    PIP_RETRIES=10 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-WORKDIR /app
-
-RUN python -m pip install --no-cache-dir --upgrade \
-    "pip==24.0" \
-    "setuptools==84.2.1" \
-    "wheel>=0.46.2"
+WORKDIR /build
 
 COPY requirements.txt .
 
-RUN python -m pip install --no-cache-dir -r requirements.txt \
-    && python -m pip check
+RUN python -m pip install \
+    --no-cache-dir \
+    --require-hashes \
+    --only-binary=:all: \
+    --target=/install \
+    -r requirements.txt
 
-RUN addgroup -S appgroup && \
-    adduser -S -G appgroup appuser
+
+FROM python:3.11-slim AS runtime
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/install \
+    APP_ENV=production
+
+WORKDIR /app
+
+RUN apt-get update \
+    && apt-get install --only-upgrade -y --no-install-recommends libzstd1 \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --system appgroup \
+    && useradd --system --gid appgroup --no-create-home appuser \
+    && rm -rf /usr/local/lib/python3.11/site-packages/setuptools \
+              /usr/local/lib/python3.11/site-packages/setuptools-*.dist-info
+
+COPY --from=builder /install /install
 
 COPY --chown=appuser:appgroup app/ ./app/
 

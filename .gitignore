@@ -34,3 +34,7 @@ build/
 
 # Generated security scan reports
 applications/reference-service/trivy*.json
+
+# Generated analysis and coverage files
+.scannerwork/
+coverage.xml
