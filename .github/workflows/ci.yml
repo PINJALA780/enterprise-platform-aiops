@@ -103,7 +103,7 @@ jobs:
             applications/reference-service
 
       - name: Scan image with Trivy
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.32.0
         with:
           image-ref: enterprise-reference-service:${{ github.sha }}
           format: json
