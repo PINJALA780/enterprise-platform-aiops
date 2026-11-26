@@ -84,7 +84,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   container-scan:
-    name: Docker Build and Trivy Scan
+    name: Docker Build, Trivy Scan and SBOM
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -113,6 +113,14 @@ jobs:
           ignore-unfixed: true
           exit-code: '1'
 
+      - name: Generate Docker image SBOM
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: enterprise-reference-service:${{ github.sha }}
+          format: spdx-json
+          output: image-sbom.spdx.json
+          exit-code: '0'
+
       - name: Upload Trivy scan report
         if: always()
         uses: actions/upload-artifact@v4
@@ -121,3 +129,12 @@ jobs:
           path: trivy-results.json
           if-no-files-found: warn
           retention-days: 7
+
+      - name: Upload SBOM artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reference-service-sbom
+          path: image-sbom.spdx.json
+          if-no-files-found: warn
+          retention-days: 30
